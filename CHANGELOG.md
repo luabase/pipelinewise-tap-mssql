@@ -1,3 +1,7 @@
+# tap-mssql 2.4.1 2024-08-16
+
+* Add support for automatically connecting to replicas via the read_only flag.
+
 # tap-mssql 2.4.0 2024-08-08
 
 * Moving to patched version of Singer Framework plus using msgspec rather than orjson for JSON serialization speed.

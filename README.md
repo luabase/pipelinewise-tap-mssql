@@ -171,6 +171,15 @@ A numeric setting adjusting the internal buffersize. The common query tuning sce
 }
 ```
 
+Optional:
+
+Indicate to the server that our workload is read-only. This will automatically route our connection to a read-only replica if one exists within the server's Availability Group. If no read-only replica is found, the connection fall back to a primary server. This feature is supported by SQL Server 2012 and above.
+
+```json
+{
+  "read_only": true
+}
+
 ### Discovery mode
 
 The tap can be invoked in discovery mode to find the available tables and
