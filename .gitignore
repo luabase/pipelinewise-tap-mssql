@@ -132,3 +132,5 @@ dmypy.json
 config.json
 state.json
 properties.json
+
+**/**/.DS_Store
