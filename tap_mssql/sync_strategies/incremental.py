@@ -17,6 +17,7 @@ BOOKMARK_KEYS = {"replication_key", "replication_key_value", "version"}
 def sync_table(mssql_conn, config, catalog_entry, state, columns):
     mssql_conn = MSSQLConnection(config)
     common.whitelist_bookmark_keys(BOOKMARK_KEYS, catalog_entry.tap_stream_id, state)
+    driver = config.get("driver", "pymssql")
 
     catalog_metadata = metadata.to_map(catalog_entry.metadata)
     stream_metadata = catalog_metadata.get((), {})
@@ -58,11 +59,16 @@ def sync_table(mssql_conn, config, catalog_entry, state, columns):
                         pendulum.parse(replication_key_value).timestamp()
                     )
                     
+                if driver == 'pymssql':
+                    select_sql += ' WHERE "{}" >= %(replication_key_value)s ORDER BY "{}" ASC'.format(
+                        replication_key_metadata, replication_key_metadata
+                    )
 
-                select_sql += ' WHERE "{}" >= %(replication_key_value)s ORDER BY "{}" ASC'.format(
-                    replication_key_metadata, replication_key_metadata
-                )
-
+                elif driver == 'pyodbc':
+                    select_sql += ' WHERE "{}" >= ? ORDER BY "{}" ASC'.format(
+                        replication_key_metadata, replication_key_metadata
+                    )
+                    
                 params["replication_key_value"] = replication_key_value
             elif replication_key_metadata is not None:
                 select_sql += ' ORDER BY "{}" ASC'.format(replication_key_metadata)

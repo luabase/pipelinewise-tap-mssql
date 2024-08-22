@@ -47,6 +47,7 @@ class MSSQLConnection:
 
     def _pyodbc_conn_str(self, config):
         return (
+            # f"DRIVER={{ODBC Driver 18 for SQL Server}};"
             f"DRIVER={{ODBC Driver 18 for SQL Server}};"
             f"SERVER={config['host']};"
             f"DATABASE={config['database']};"
