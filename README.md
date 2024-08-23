@@ -96,6 +96,16 @@ e.g.:
 
 Optional:
 
+Which Python SQL Server driver to use. Options are `pymssql` or `pyodbc`. Defaults to `pymssql`.
+
+```json
+{
+  "driver": "pymssql"
+}
+```
+
+Optional:
+
 To filter the discovery to a particular schema within a database. This is useful if you have a large number of schemas and wish to speed up the discovery.
 
 ```json
