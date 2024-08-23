@@ -1,13 +1,11 @@
-#!/usr/bin/env python3
-
 import backoff
 import pymssql
+import pyodbc
 import singer
 
 LOGGER = singer.get_logger()
 
-
-@backoff.on_exception(backoff.expo, pymssql.Error, max_tries=5, factor=2)
+@backoff.on_exception(backoff.expo, (pymssql.Error, pyodbc.Error), max_tries=5, factor=2)
 def connect_with_backoff(connection):
     warnings = []
     with connection.cursor():
@@ -23,10 +21,21 @@ def connect_with_backoff(connection):
 
     return connection
 
-
-class MSSQLConnection(pymssql.Connection):
+class MSSQLConnection:
     def __init__(self, config):
-        args = {
+        self.driver = config.get("driver", "pymssql")
+        self.connection = self._create_connection(config)
+
+    def _create_connection(self, config):
+        if self.driver == "pymssql":
+            return pymssql.connect(**self._pymssql_args(config))
+        elif self.driver == "pyodbc":
+            return pyodbc.connect(self._pyodbc_conn_str(config))
+        else:
+            raise ValueError(f"Unsupported driver: {self.driver}")
+
+    def _pymssql_args(self, config):
+        return {
             "user": config.get("user"),
             "password": config.get("password"),
             "server": config["host"],
@@ -35,23 +44,37 @@ class MSSQLConnection(pymssql.Connection):
             "port": config.get("port", "1433"),
             "tds_version": config.get("tds_version", "7.3"),
         }
-        conn = pymssql._mssql.connect(**args)
-        super().__init__(conn, False, True)
+
+    def _pyodbc_conn_str(self, config):
+        return (
+            # f"DRIVER={{ODBC Driver 18 for SQL Server}};"
+            f"DRIVER={{ODBC Driver 18 for SQL Server}};"
+            f"SERVER={config['host']};"
+            f"DATABASE={config['database']};"
+            f"UID={config.get('user')};"
+            f"PWD={config.get('password')};"
+            f"PORT={config.get('port', '1433')};"
+            f"CHARSET={config.get('characterset', 'utf8')};"
+            # f"TDS_Version={config.get('tds_version', '7.3')};"
+        )
 
     def __enter__(self):
-        return self
+        return self.connection.__enter__()
 
-    def __exit__(self, *exc_info):
-        del exc_info
-        self.close()
+    def __exit__(self, exc_type, exc_value, traceback):
+        return self.connection.__exit__(exc_type, exc_value, traceback)
 
+    def cursor(self):
+        return self.connection.cursor()
+
+    def close(self):
+        return self.connection.close()
 
 def make_connection_wrapper(config):
     class ConnectionWrapper(MSSQLConnection):
         def __init__(self, *args, **kwargs):
             super().__init__(config)
-
-            connect_with_backoff(self)
+            connect_with_backoff(self.connection)
 
     return ConnectionWrapper
 
