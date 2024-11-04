@@ -47,7 +47,6 @@ class MSSQLConnection:
 
     def _pyodbc_conn_str(self, config):
         return (
-            # f"DRIVER={{ODBC Driver 18 for SQL Server}};"
             f"DRIVER={{ODBC Driver 18 for SQL Server}};"
             f"SERVER={config['host']};"
             f"DATABASE={config['database']};"
@@ -55,7 +54,7 @@ class MSSQLConnection:
             f"PWD={config.get('password')};"
             f"PORT={config.get('port', '1433')};"
             f"CHARSET={config.get('characterset', 'utf8')};"
-            # f"TDS_Version={config.get('tds_version', '7.3')};"
+            f"MultiSubnetFailover={config.get('multi_subnet_failover', 'Yes')};"
         )
 
     def __enter__(self):
