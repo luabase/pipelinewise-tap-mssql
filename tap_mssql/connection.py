@@ -48,12 +48,10 @@ class MSSQLConnection:
     def _pyodbc_conn_str(self, config):
         return (
             f"DRIVER={{ODBC Driver 18 for SQL Server}};"
-            f"SERVER={config['host']};"
+            f"SERVER={config['host']},{config.get('port', '1433')};"
             f"DATABASE={config['database']};"
             f"UID={config.get('user')};"
             f"PWD={config.get('password')};"
-            f"PORT={config.get('port', '1433')};"
-            f"CHARSET={config.get('characterset', 'utf8')};"
             f"MultiSubnetFailover={config.get('multi_subnet_failover', 'Yes')};"
         )
 
