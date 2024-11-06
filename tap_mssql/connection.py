@@ -27,7 +27,6 @@ class MSSQLConnection:
         self.connection = self._create_connection(config)
 
     def _create_connection(self, config):
-        LOGGER.info(f"This is the config: {config}")
         if self.driver == "pymssql":
             return pymssql.connect(**self._pymssql_args(config))
         elif self.driver == "pyodbc":
